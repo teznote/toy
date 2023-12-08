@@ -3,5 +3,5 @@
   "editor.fontSize": 14,
   "editor.fontFamily": "ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,'Liberation Mono',monospace",
 
-  "liveServer.settings.root": "build"
+  "liveServer.settings.root": "_site"
 }
