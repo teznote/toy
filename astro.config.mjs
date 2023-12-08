@@ -7,7 +7,7 @@ export default defineConfig({
   outDir: './_site',
   trailingSlash: 'never',
   build: {
-    format: 'file',
+    // format: 'file',
     inlineStylesheets: `never`,
   },
   markdown: {

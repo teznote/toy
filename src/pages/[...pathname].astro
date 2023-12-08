@@ -1,0 +1,14 @@
+---
+export async function getStaticPaths() {
+  const mds = await Astro.glob('../../_pages/**/*.md')
+  return mds.map(md => {
+    const pathname = md.file.split('/_pages')[1].replace(/\[.*\]/, '').replace(/\.md$/, '')
+    return { params: { pathname }, props: { md } }
+  })
+}
+
+const { md } = Astro.props
+const { Content }= md
+---
+
+<article><Content /></article>
