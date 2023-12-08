@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@astrojs/mdx": "^2.0.0",
     "astro": "^4.0.3",
     "highlight.js": "^11.9.0"
   }
