@@ -1,4 +1,5 @@
 import { defineConfig } from 'astro/config'
+import mdx from '@astrojs/mdx'
 import hljs from 'highlight.js'
 import { visit } from 'unist-util-visit'
 
@@ -7,13 +8,18 @@ export default defineConfig({
   outDir: './_site',
   trailingSlash: 'never',
   build: {
-    // format: 'file',
     inlineStylesheets: `never`,
   },
   markdown: {
     syntaxHighlight: false,
     remarkPlugins: [remarkHighlightjs],
   },
+  integrations: [
+    mdx({
+      syntaxHighlight: false,
+      remarkPlugins: [remarkHighlightjs],
+    }),
+  ],
 })
 
 
