@@ -2,6 +2,7 @@
   "recommendations": [
     "vue.volar",
     "vue.vscode-typescript-vue-plugin",
-    "ritwickdey.liveserver"
+    "ritwickdey.liveserver",
+    "unifiedjs.vscode-mdx"
   ]
 }
