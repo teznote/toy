@@ -1,0 +1,12 @@
+---
+const mds = await Astro.glob('../../_pages/navmenu.yaml')
+console.log(mds)
+
+export function getStaticPaths() {
+  return [{ params: { navmenu: '1' } }]
+}
+
+const { navmenu } = Astro.params
+---
+
+<article class="markdown-body">{ navmenu }</article>

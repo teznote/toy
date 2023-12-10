@@ -1,5 +1,5 @@
 import { defineConfig } from 'astro/config'
-import mdx from '@astrojs/mdx'
+import yaml from '@rollup/plugin-yaml'
 import hljs from 'highlight.js'
 import { visit } from 'unist-util-visit'
 
@@ -14,12 +14,9 @@ export default defineConfig({
     syntaxHighlight: false,
     remarkPlugins: [remarkHighlightjs],
   },
-  integrations: [
-    mdx({
-      syntaxHighlight: false,
-      remarkPlugins: [remarkHighlightjs],
-    }),
-  ],
+  vite: {
+    plugins: [yaml()],
+  },
 })
 
 
