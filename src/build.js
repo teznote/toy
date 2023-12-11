@@ -7,11 +7,12 @@ import postcss_nested from 'postcss-nested'
 import unocss from '@unocss/postcss'
 import cssnano from 'cssnano'
 import { Liquid } from 'liquidjs'
-import { minify } from 'html-minifier'
+// import { minify } from 'html-minifier'
 import hljs from 'highlight.js'
 import markdownIt from 'markdown-it'
 
-// 
+// variables
+const $root = process.env.PWD
 
 // init liquidjs
 const engine = new Liquid()
@@ -70,20 +71,21 @@ const parse_md = markdownIt({
 function convert(file, content='', props={}) {
   props.layout = null
   const r = matter.read(file, {
-    engines: { yaml: s => yaml.safeLoad(s, { schema: yaml.JSON_SCHEMA }) }
+    engines: { yaml: s => yaml.load(s, { schema: yaml.JSON_SCHEMA }) }
   })
-  Object(props, r.data)
   if (file.match(/\.md$/)) {
     content = parse_md.render(r.content)
+    Object(props, { page: { ...r.data } })
   } else {
     content = engine.parseAndRenderSync(r.content, { content, ...props })
+    Object(props, r.data)
   }
-  return (r.data?.layout) ? convert(`./_layouts/${r.data.layout}.html`, content, ...props) : { content, ...props } 
+  return (r.data?.layout) ? convert($root + `/src/_layouts/${r.data.layout}.html`, content, props) : { content, ...props } 
 }
 
 // build _pages
 function build_pages() {
-  const mdfiles = fg.globSync('./_pages/**/*.md')
+  const mdfiles = fg.globSync($root + '/src/_pages/**/*.md')
   const mdinfos = []
 
   for (let mdfile of mdfiles) {
@@ -92,3 +94,6 @@ function build_pages() {
 
   }
 }
+
+const a = convert($root + '/src/_pages/index.md')
+console.log(a)
