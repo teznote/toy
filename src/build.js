@@ -69,31 +69,50 @@ const parse_md = markdownIt({
 
 // md file -> json sting convert recursive function
 function convert(file, content='', props={}) {
-  props.layout = null
+  const { layout, ...rest } = props
+  props = rest
   const r = matter.read(file, {
     engines: { yaml: s => yaml.load(s, { schema: yaml.JSON_SCHEMA }) }
   })
   if (file.match(/\.md$/)) {
     content = parse_md.render(r.content)
-    Object(props, { page: { ...r.data } })
+    Object.assign(props, { page: { ...r.data } })
   } else {
     content = engine.parseAndRenderSync(r.content, { content, ...props })
-    Object(props, r.data)
+    Object.assign(props, r.data)
   }
+  console.log(props)
   return (r.data?.layout) ? convert($root + `/src/_layouts/${r.data.layout}.html`, content, props) : { content, ...props } 
 }
 
-// build _pages
+// build post and navigation pages
 function build_pages() {
+  // remove previous all posts (if exist)
+  fs.removeSync($root + '/_site/_pages')
+
+  // generate posts (include index, 404)
   const mdfiles = fg.globSync($root + '/src/_pages/**/*.md')
   const mdinfos = []
-
   for (let mdfile of mdfiles) {
-    const { content, title } = convert(mdfile)
-    const pathname = mdfile.split('/_pages')[1].replace(/\[.*?\]/, '').replace(/\.md$/, '')
+    const { content, title, description, updated } = convert(mdfile)
+    const tmp = mdfile.split('/_pages')[1].replace(/\[.*?\]/, '').replace(/\.md$/, '').split('/')
+    
 
+    const tarjson = $root + `/_site/_pages/post/` + pathname.split('/').slice(-1)[0] + '.json'
+    fs.outputJSONSync(tarjson, { pathname, content })
+    
+    const cat = mdfine.match(/\/_pages\/([\S]+)\//)[1])
+    mdinfos.push({ pathname, title, description, updated })
+  }
+
+  // generate navigation
+  const yamlfile = fg.globSync($root + '/src/_pages/**/*.{yaml,yml}')[0]
+  const menu = yaml.load(fs.readFileSync(yamlfile, 'utf8'))
+  for (let [outer, inner] of Object.entries(menu)) {
+    const { content } = convert($root + `/src/_layuts/nav.html`, '', { cats: { ...inner }, pages: { ...mdinfos }})
+    const pathname = '/' + outer.toLocaleLowerCase()
   }
 }
 
-const a = convert($root + '/src/_pages/index.md')
-console.log(a)
+const a = '/home/teznote/toy/src/_pages/excel_formula/[xx]aaa.md'
+console.log(a.match(/\/_pages\/([\S]+)\//)[1])
