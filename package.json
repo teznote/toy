@@ -19,6 +19,7 @@
     "js-yaml": "^4.1.0",
     "liquidjs": "^10.9.4",
     "markdown-it": "^14.0.0",
+    "node-esm-loader": "^0.2.5",
     "postcss": "^8.4.32",
     "postcss-nested": "^6.0.1",
     "unocss": "^0.58.0"
