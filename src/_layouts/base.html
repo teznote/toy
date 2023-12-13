@@ -8,12 +8,14 @@ site:
   <head>
     <meta charset="utf-8" />
     <title>{{ site.title }}</title>
-    <link rel="stylesheet" href="/main.css" />
+    <link rel="stylesheet" href="/_assets/main.css" />
   </head>
   <body>
     <section>
       <header>
-        Header...
+      {% for menu in menus %}
+        <div><a href="">{{}}</a></div>
+      {% endfor %}
       </header>
     </section>
     <section>

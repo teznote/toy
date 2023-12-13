@@ -81,38 +81,46 @@ function convert(file, content='', props={}) {
     content = engine.parseAndRenderSync(r.content, { content, ...props })
     Object.assign(props, r.data)
   }
-  console.log(props)
   return (r.data?.layout) ? convert($root + `/src/_layouts/${r.data.layout}.html`, content, props) : { content, ...props } 
 }
 
-// build post and navigation pages
-function build_pages() {
-  // remove previous all posts (if exist)
-  fs.removeSync($root + '/_site/_pages')
+// remove previous all blog sources
+function init() {
+  fs.removeSync($root + '/_site')
+}
 
-  // generate posts (include index, 404)
+// generate posts (include index, 404, navigation)
+function gen_posts() {
   const mdfiles = fg.globSync($root + '/src/_pages/**/*.md')
   const mdinfos = []
   for (let mdfile of mdfiles) {
     const { content, title, description, updated } = convert(mdfile)
-    const tmp = mdfile.split('/_pages')[1].replace(/\[.*?\]/, '').replace(/\.md$/, '').split('/')
-    
+    const tmp = mdfile.split('/_pages')[1].replace(/\[.*?\]/, '').replace(/\.md$/, '').match(/(\S*)\/(\S*)/)
+    const cat = tmp[1]
+    const pathname = (cat ? '/post/' : '/') + tmp[2]  
 
-    const tarjson = $root + `/_site/_pages/post/` + pathname.split('/').slice(-1)[0] + '.json'
+    const tarjson = $root + '/_site/_pages' + pathname + '.json'
     fs.outputJSONSync(tarjson, { pathname, content })
-    
-    const cat = mdfine.match(/\/_pages\/([\S]+)\//)[1])
-    mdinfos.push({ pathname, title, description, updated })
-  }
 
-  // generate navigation
+    mdinfos.push({ pathname, cat, title, description, updated })
+  
   const yamlfile = fg.globSync($root + '/src/_pages/**/*.{yaml,yml}')[0]
   const menu = yaml.load(fs.readFileSync(yamlfile, 'utf8'))
   for (let [outer, inner] of Object.entries(menu)) {
-    const { content } = convert($root + `/src/_layuts/nav.html`, '', { cats: { ...inner }, pages: { ...mdinfos }})
+    const { content } = convert($root + `/src/_layouts/nav.html`, '', { cats: inner, pages: mdinfos })
     const pathname = '/' + outer.toLocaleLowerCase()
+
+    const tarjson = $root + '/_site/_pages' + pathname + '.json'
+    fs.outputJSONSync(tarjson, { pathname, content })
   }
 }
 
-const a = '/home/teznote/toy/src/_pages/excel_formula/[xx]aaa.md'
-console.log(a.match(/\/_pages\/([\S]+)\//)[1])
+// generate index.html && 404.html
+function gen_layout() {
+  const menus = Object.keys(menu).map(outer => { pathname: '/' + outer.toLocaleLowerCase(), title: outer[0].toLocaleUpperCase() + outer.slice(1) })
+  const { content } = convert($root + `/src/_layouts/base.html`, '', { menus: Object.keys(menu) })
+
+  const tarjson = $root + '/_site/index.html'
+  fs.outputJSONSync(tarjson)
+  fs.copyFileSync(tarjson, $root + '/_site/404.html')
+}
