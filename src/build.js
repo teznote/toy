@@ -80,7 +80,6 @@ function convert(file, content='', props={}) {
     content = parse_md.render(r.content)
   } else {
     Object.assign(props, r.data)
-    console.log(props)
     content = engine.parseAndRenderSync(r.content, { content, ...props })
   }
   return (r.data?.layout) ? convert($root + `/src/_layouts/${r.data.layout}.html`, content, props) : { content, ...props } 
@@ -97,7 +96,7 @@ async function gen_pages() {
   const mdfiles = fg.globSync($root + '/src/_pages/**/*.md')
   const mdinfos = []
   for (let mdfile of mdfiles) {
-    const { content, title, description, updated } = convert(mdfile)
+    const { content, page } = convert(mdfile)
     const tmp = mdfile.split('/_pages')[1].replace(/\[.*?\]/, '').replace(/\.md$/, '').match(/(\S*)\/(\S*)/)
     const cat = tmp[1]
     const pathname = (cat ? '/post/' : '/') + tmp[2]
@@ -105,11 +104,11 @@ async function gen_pages() {
     const content_minified = await posthtml([htmlnano()]).process(content)
 
     const tarjson = $root + '/_site/_pages' + pathname + '.json'
-    fs.outputJSONSync(tarjson, { pathname, title, content: content_minified.html })
+    fs.outputJSONSync(tarjson, { pathname, cat, page, content: content_minified.html })
 
-    mdinfos.push({ pathname, cat, title, description, updated })
+    mdinfos.push({ pathname, cat, ...page })
   }
-
+  
   // gen navigation
   const yamlfile = fg.globSync($root + '/src/_pages/**/*.{yaml,yml}')[0]
   const menu = yaml.load(fs.readFileSync(yamlfile, 'utf8'))
