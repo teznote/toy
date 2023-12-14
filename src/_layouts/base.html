@@ -4,27 +4,68 @@ site:
 ---
 
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-theme="light">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ site.title }}</title>
+    <link rel="icon" type="image/png" href="/_assets/favicon.png" />
     <link rel="stylesheet" href="/_assets/main.css" />
   </head>
-  <body>
-    <section>
-      <header>
-      {% for menu in menus %}
-        <div><a href="{{ menu.pathname }}">{{ menu.title }}</a></div>
-      {% endfor %}
-      </header>
+  <body class="fixed top-0 right-0 bottom-0 left-0 flex flex-col font-sans font-400 text-base bg-[var(--bg-1)] color-[var(--fg-1)]">
+    <section class="flex-[0_0_3rem] min-h-0 w-full overflow-hidden bg-[var(--bg-2)] shadow-[var(--box-shadow)]">
+      <div class="h-full w-full max-w-[60rem] mx-auto px-[0.5rem]">
+        <header class="h-full w-full flex">
+          <div class="flex-[1_1_0] h-full min-w-0 flex items-center justify-left gap-[1.5rem]">
+            <div id="site-title">Tez'Note</div>
+          </div>
+          <div class="flex-[1_1_0] h-full min-w-0 flex items-center justify-right gap-[1.5rem]">
+            {% for menu in menus %}
+            <div><a href="{{ menu.pathname }}">{{ menu.title }}</a></div>
+            {% endfor %}
+            <label id="switch-theme" class="relative h-[1.5rem] w-[1.5rem] overflow-hidden cursor-pointer">
+              <input type="checkbox" class="h-0 w-0 opacity-0 [&:checked+div]-top-[-1.5rem]" />
+              <div class="absolute top-0 left-0 h-[1.5rem] w-[1.5rem] transition-top-400">
+                <div class="h-[1.5rem] w-[1.5rem] flex items-center justify-center">🌞</div>
+                <div class="h-[1.5rem] w-[1.5rem] flex items-center justify-center">🌚</div>
+              </div>
+            </label>
+          </div>
+        </header>
+      </div>
     </section>
-    <section>
-      <main>
-        <!-- fetched page goes here -->
-      </main>
-      <footer>
-        Footer...
-      </footer>
+    <section class="flex-[1_0_0] min-h-0 w-full overflow-y-scroll">
+      <div class="max-w-[60rem] w-full mx-auto px-[0.5rem]">
+        <main class="w-full"><!-- fetched page goes here --></main>
+      </div>
+      <div class="sticky top-[100vh] bg-[var(--bg-2)]">
+        <div class="h-[3rem] max-w-[60rem] w-full mx-auto px-[0.5rem]">
+          <footer class="h-full w-full flex items-center justify-center flex-wrap">
+            <div>This blog is designed by Tez,&nbsp;</div>
+            <div>and Deployed on Github Pages.</div>
+          </footer>
+        </div>
+      </div>
     </section>
+
+    <script>
+      $root = document.querySelector('html')
+      $switch_theme_input = document.querySelector('#switch-theme input')
+
+      function set_theme(theme) {
+        $root.dataset.theme = theme
+        window.sessionStorage.setItem('theme', theme)
+      }
+    
+      let cur_theme = window.sessionStorage.getItem('theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches  ? 'dark' : 'light')
+      if (cur_theme === 'dark') {
+        $switch_theme_input.checked = true
+        set_theme('dark')
+      }
+      $switch_theme_input.onclick = function(e) {
+        set_theme((e.target.checked) ? 'dark' : 'light')
+      }
+    </script>
+
   </body>
 </html>
