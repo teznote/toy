@@ -76,11 +76,12 @@ function convert(file, content='', props={}) {
     engines: { yaml: s => yaml.load(s, { schema: yaml.JSON_SCHEMA }) }
   })
   if (file.match(/\.md$/)) {
-    content = parse_md.render(r.content)
     Object.assign(props, { page: { ...r.data } })
+    content = parse_md.render(r.content)
   } else {
-    content = engine.parseAndRenderSync(r.content, { content, ...props })
     Object.assign(props, r.data)
+    console.log(props)
+    content = engine.parseAndRenderSync(r.content, { content, ...props })
   }
   return (r.data?.layout) ? convert($root + `/src/_layouts/${r.data.layout}.html`, content, props) : { content, ...props } 
 }
@@ -104,7 +105,7 @@ async function gen_pages() {
     const content_minified = await posthtml([htmlnano()]).process(content)
 
     const tarjson = $root + '/_site/_pages' + pathname + '.json'
-    fs.outputJSONSync(tarjson, { pathname, content: content_minified.html })
+    fs.outputJSONSync(tarjson, { pathname, title, content: content_minified.html })
 
     mdinfos.push({ pathname, cat, title, description, updated })
   }
@@ -119,7 +120,7 @@ async function gen_pages() {
     const content_minified = await posthtml([htmlnano()]).process(content)
 
     const tarjson = $root + '/_site/_pages' + pathname + '.json'
-    fs.outputJSONSync(tarjson, { pathname, content: content_minified.html })
+    fs.outputJSONSync(tarjson, { pathname, titie: outer.toLocaleLowerCase() + ' 카테고리', content: content_minified.html })
   }
 
   // gen layout

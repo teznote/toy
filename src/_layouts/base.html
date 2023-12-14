@@ -12,29 +12,26 @@ site:
     <link rel="icon" type="image/png" href="/_assets/favicon.png" />
     <link rel="stylesheet" href="/_assets/main.css" />
   </head>
-  <body class="fixed top-0 right-0 bottom-0 left-0 flex flex-col font-sans font-400 text-base bg-[var(--bg-1)] color-[var(--fg-1)]">
+  <body class="fixed top-0 right-0 bottom-0 left-0 flex flex-col bg-[var(--bg-1)] color-[var(--fg-1)]">
     <section class="flex-[0_0_3rem] min-h-0 w-full overflow-hidden bg-[var(--bg-2)] shadow-[var(--box-shadow)]">
       <div class="h-full w-full max-w-[60rem] mx-auto px-[0.5rem]">
-        <header class="h-full w-full flex">
-          <div class="flex-[1_1_0] h-full min-w-0 flex items-center justify-left gap-[1.5rem]">
-            <div id="site-title">Tez'Note</div>
-          </div>
-          <div class="flex-[1_1_0] h-full min-w-0 flex items-center justify-right gap-[1.5rem]">
+        <header class="h-full w-full flex items-center justify-left gap-[1.5rem]">
+            <div id="site-title" class="mr-auto">Tez'Note</div>
             {% for menu in menus %}
             <div><a href="{{ menu.pathname }}">{{ menu.title }}</a></div>
             {% endfor %}
             <label id="switch-theme" class="relative h-[1.5rem] w-[1.5rem] overflow-hidden cursor-pointer">
               <input type="checkbox" class="h-0 w-0 opacity-0 [&:checked+div]-top-[-1.5rem]" />
               <div class="absolute top-0 left-0 h-[1.5rem] w-[1.5rem] transition-top-400">
-                <div class="h-[1.5rem] w-[1.5rem] flex items-center justify-center">🌞</div>
-                <div class="h-[1.5rem] w-[1.5rem] flex items-center justify-center">🌚</div>
+                <div class="h-[1.5rem] w-[1.5rem] flex items-center justify-center font-size-[1.25rem]">🌞</div>
+                <div class="h-[1.5rem] w-[1.5rem] flex items-center justify-center font-size-[1.25rem]">🌚</div>
               </div>
             </label>
           </div>
         </header>
       </div>
     </section>
-    <section class="flex-[1_0_0] min-h-0 w-full overflow-y-scroll">
+    <section id="scroller" class="flex-[1_0_0] min-h-0 w-full overflow-y-scroll">
       <div class="max-w-[60rem] w-full mx-auto px-[0.5rem]">
         <main class="w-full"><!-- fetched page goes here --></main>
       </div>
@@ -67,5 +64,42 @@ site:
       }
     </script>
 
+    <script>
+      $scroller = document.querySelector('#scroller')
+      $main = document.querySelector('main')
+
+      async function fill_content() {
+        const cur_pathname = window.location.pathname
+        const tar_pathname = '/_pages/' + cur_pathname.slice(1) + (cur_pathname === '/' ? 'index.json' : '.json')
+        let response
+        try {
+          response = await (await fetch(tar_pathname)).json()
+        } catch (err) {
+          response = await (await fetch('/404.json')).json()
+        }
+        $main.innerHTML = response.content
+        document.title = response.title + '::{{ site.title }}'
+      }
+
+      // 주소 직접 입력
+      fill_content()
+      
+      // <a> 태그 클릭
+      document.body.onclick = async e => {
+        if (e.target.matches('a') && e.target.href.startsWith(window.location.origin) && !e.target.getAttribute('href').match(/[.#]/)) {
+          e.preventDefault()
+          if (e.target.href !== window.location.href) {
+            history.pushState(null, null, e.target.href)
+            await fill_content()
+            $scroller.scrollTo({ top: 0 })
+          }
+        }
+      }
+
+      // 전,후 이동 버튼 클릭
+      window.onpopstate = e => {
+        fill_content()
+      }
+    </script>
   </body>
 </html>

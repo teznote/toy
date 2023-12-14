@@ -1,3 +1,5 @@
+@unocss all;
+
 * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
 :root {
   --color-black: #000; --color-white: #fff;
@@ -58,9 +60,14 @@ body, div, header, main, footer, section {
     display: none;
   }
 }
+body {
+  @apply font-mono font-400 text-base;
+}
+pre, code, kbd, samp, cite {
+  @apply font-mono;
+}
 a, a:link, a:visited, a:hover, a:active {
   color: var(--fg-a);
 }
 
 
-@unocss all;
