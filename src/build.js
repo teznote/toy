@@ -60,7 +60,7 @@ const parse_md = markdownIt({
 
     lines = hljs.highlight(code_modified, { language }).value.trim().split('\n')
     return lines.map((x, i) => {
-      return `<div class="line ${tar_line.get(i) || ''}">${x || ' '}</div>`
+      return `<div class="codeline ${tar_line.get(i) || ''}">${x || ' '}</div>`
     }).join('')
   },
 })
