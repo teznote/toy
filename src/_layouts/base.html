@@ -14,7 +14,7 @@ site:
     <section>
       <header>
       {% for menu in menus %}
-        <div><a href="">{{}}</a></div>
+        <div><a href="{{ menu.pathname }}">{{ menu.title }}</a></div>
       {% endfor %}
       </header>
     </section>

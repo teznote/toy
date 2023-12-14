@@ -7,12 +7,10 @@ import postcss_nested from 'postcss-nested'
 import unocss from '@unocss/postcss'
 import cssnano from 'cssnano'
 import { Liquid } from 'liquidjs'
-// import { minify } from 'html-minifier'
 import hljs from 'highlight.js'
 import markdownIt from 'markdown-it'
-
-// variables
-const $root = process.env.PWD
+import posthtml from 'posthtml'
+import htmlnano from 'htmlnano'
 
 // init liquidjs
 const engine = new Liquid()
@@ -37,7 +35,7 @@ hljs.registerLanguage("pseudo", function(hljs) {
       },
       {
         className: 'leadline',
-        begin: /[↑→↓←\/|\\+-]+/,
+        begin: /[\/|\\▲▶▼◀+-]+/,
       },
     ],
   }
@@ -53,7 +51,7 @@ const parse_md = markdownIt({
     let lines = code.trim().split('\n')
     let tar_line = new Map()
     let code_modified = lines.map((x, i) => {
-      if (x[0] === '-' || x[0] === '+' || x[0] === '~') {
+      if (x[0] === '-' || x[0] === '+' || x[0] === ']') {
         tar_line.set(i, x[0])
         x = x.slice(1)
       }
@@ -66,6 +64,9 @@ const parse_md = markdownIt({
     }).join('')
   },
 })
+
+// miscellaneous global variables
+const $root = process.env.PWD
 
 // md file -> json sting convert recursive function
 function convert(file, content='', props={}) {
@@ -84,43 +85,75 @@ function convert(file, content='', props={}) {
   return (r.data?.layout) ? convert($root + `/src/_layouts/${r.data.layout}.html`, content, props) : { content, ...props } 
 }
 
-// remove previous all blog sources
-function init() {
+// remove previous all blog sources (if exist)
+function gen_init() {
   fs.removeSync($root + '/_site')
 }
 
-// generate posts (include index, 404, navigation)
-function gen_posts() {
+// generate posts and pages (include index, 404, navigation, layouts)
+async function gen_pages() {
+  // gen posts, index, 404
   const mdfiles = fg.globSync($root + '/src/_pages/**/*.md')
   const mdinfos = []
   for (let mdfile of mdfiles) {
     const { content, title, description, updated } = convert(mdfile)
     const tmp = mdfile.split('/_pages')[1].replace(/\[.*?\]/, '').replace(/\.md$/, '').match(/(\S*)\/(\S*)/)
     const cat = tmp[1]
-    const pathname = (cat ? '/post/' : '/') + tmp[2]  
+    const pathname = (cat ? '/post/' : '/') + tmp[2]
+
+    const content_minified = await posthtml([htmlnano()]).process(content)
 
     const tarjson = $root + '/_site/_pages' + pathname + '.json'
-    fs.outputJSONSync(tarjson, { pathname, content })
+    fs.outputJSONSync(tarjson, { pathname, content: content_minified.html })
 
     mdinfos.push({ pathname, cat, title, description, updated })
-  
+  }
+
+  // gen navigation
   const yamlfile = fg.globSync($root + '/src/_pages/**/*.{yaml,yml}')[0]
   const menu = yaml.load(fs.readFileSync(yamlfile, 'utf8'))
   for (let [outer, inner] of Object.entries(menu)) {
     const { content } = convert($root + `/src/_layouts/nav.html`, '', { cats: inner, pages: mdinfos })
     const pathname = '/' + outer.toLocaleLowerCase()
 
+    const content_minified = await posthtml([htmlnano()]).process(content)
+
     const tarjson = $root + '/_site/_pages' + pathname + '.json'
-    fs.outputJSONSync(tarjson, { pathname, content })
+    fs.outputJSONSync(tarjson, { pathname, content: content_minified.html })
+  }
+
+  // gen layout
+  const menus = Object.keys(menu).map(outer => {
+    return { pathname: '/' + outer.toLocaleLowerCase(), title: outer[0].toLocaleUpperCase() + outer.slice(1) }
+  })
+  {
+    const { content } = convert($root + `/src/_layouts/base.html`, '', { menus })
+    const content_minified = await posthtml([htmlnano()]).process(content)
+
+    const tarjson = $root + '/_site/index.html'
+    fs.outputFileSync(tarjson, content_minified.html)
+    fs.copyFileSync(tarjson, $root + '/_site/404.html')
   }
 }
 
-// generate index.html && 404.html
-function gen_layout() {
-  const menus = Object.keys(menu).map(outer => { pathname: '/' + outer.toLocaleLowerCase(), title: outer[0].toLocaleUpperCase() + outer.slice(1) })
-  const { content } = convert($root + `/src/_layouts/base.html`, '', { menus: Object.keys(menu) })
+// generate css and copy another static files (like favicon, js files)
+async function gen_assets() {
+  fs.copySync($root + '/src/_assets', $root + '/_site/_assets', {
+    filter: (from, to) => {
+      return !from.includes('main.css')
+    }
+  })
 
-  const tarjson = $root + '/_site/index.html'
-  fs.outputJSONSync(tarjson)
-  fs.copyFileSync(tarjson, $root + '/_site/404.html')
+  const src_css = fs.readFileSync($root + '/src/_assets/main.css')
+  const generated_css = await postcss(
+    [postcss_nested, unocss, cssnano]
+  ).process(src_css, {
+    from: $root + '/src/_assets/main.css',
+    to: $root + '/_site/_assets/main.css',
+  })
+  fs.outputFileSync(generated_css.opts.to, generated_css.css)
 }
+
+gen_init()
+gen_pages()
+gen_assets()
