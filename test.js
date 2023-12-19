@@ -7,7 +7,6 @@ import posthtml from 'posthtml'
 import htmlnano from 'htmlnano'
 import { env } from './src/_libs/config.js'
 
-
 const matter_opt = { engines: { yaml: s => yaml.load(s, { schema: yaml.JSON_SCHEMA }) } }
 const engine = new Liquid()
 hljs.registerLanguage("pseudo", function(hljs) {
@@ -57,7 +56,7 @@ const parse_md = markdownIt({
   },
 })
 
-function render_to_json(file, content='', props={}) {
+async function render_to_json(file, content='', props={}) {
   const { layout, ...rest } = props
   props = rest
   const r = matter.read(file, matter_opt)
@@ -70,15 +69,14 @@ function render_to_json(file, content='', props={}) {
   }
 
   if (r.data?.layout) {
-    render_to_json(env._layouts + `/${r.data.layout}.html`, content, props)
+    return render_to_json(env._layouts + `/${r.data.layout}.html`, content, props)
   } else {
-    // content = await posthtml([htmlnano()]).process(content)
-
+    content = (await posthtml([htmlnano()]).process(content)).html
     return { content, ...props }
   }
 }
 
 // export default render_to_json
 
-const a = render_to_json('./src/_pages/index.md')
+const a = await render_to_json('./src/_pages/index.md', '', { a: 'a', b: 'b' })
 console.log(a)
