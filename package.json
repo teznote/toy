@@ -17,6 +17,7 @@
     "fs-extra": "^11.2.0",
     "gray-matter": "^4.0.3",
     "highlight.js": "^11.9.0",
+    "html-minifier": "^4.0.0",
     "htmlnano": "^2.1.0",
     "js-yaml": "^4.1.0",
     "liquidjs": "^10.9.4",
