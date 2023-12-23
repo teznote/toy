@@ -18,13 +18,11 @@
     "gray-matter": "^4.0.3",
     "highlight.js": "^11.9.0",
     "html-minifier": "^4.0.0",
-    "htmlnano": "^2.1.0",
     "js-yaml": "^4.1.0",
     "liquidjs": "^10.9.4",
     "markdown-it": "^14.0.0",
     "postcss": "^8.4.32",
     "postcss-nested": "^6.0.1",
-    "posthtml": "^0.16.6",
     "terser": "^5.26.0",
     "unocss": "^0.58.0"
   }
