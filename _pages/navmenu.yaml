@@ -1,0 +1,12 @@
+work:
+  - id: excel-formula
+    title: 유용한 엑셀 함수식
+    order: desc
+  - id: template
+    title: 업무 템플릿
+development:
+  - id: dev
+    title: 개발 노트
+    order: desc
+  - id: code-snippet
+    title: 코드 조각들

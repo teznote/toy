@@ -1,47 +1,117 @@
 import path from 'node:path'
 import yaml from 'js-yaml'
+import fg from 'fast-glob'
+import fs from 'fs-extra'
+import matter from 'gray-matter'
+import { Liquid } from 'liquidjs'
+import hljs from 'highlight.js'
+import markdownIt from 'markdown-it'
+import { minify } from 'html-minifier'
 
+/**
+ * init global vars and settings
+ */
 const $root = process.env.PWD
-const allinfos = await (await fetch('https://api.github.com/repos/teznote/teznote.github.io/git/trees/main?recursive=1')).json()
-const mdinfos = []
-const navmenu = {}
+const matter_opt = { engines: { yaml: s => yaml.load(s, { schema: yaml.JSON_SCHEMA }) } }
+const engine = new Liquid()
+hljs.registerLanguage("pseudo", function(hljs) {
+  return {
+    aliases: ['ps'],
+    contains: [
+      {
+        className: 'comment',
+        begin: /#/,
+        end: /\s\s|\n|$/,
+      },
+      {
+        className: 'strong',
+        begin: /\b[A-Z][A-Z0-9]*\b/,
+      },
+      {
+        className: 'number',
+        begin: /\b[0-9]+\b/,
+      },
+      {
+        className: 'leadline',
+        begin: /[\/|\\▲▶▼◀+-]+/,
+      },
+    ],
+  }
+})
+const parse_md = markdownIt({
+  html: true,
+  xhtmlOut: true,
+  highlight(code, lang) {
+    const language = hljs.getLanguage(lang) ? lang : 'plaintext'
 
-// create mdinfos and navmenu
-for (let x of (allinfos.tree || [])) {
-  if (x.type !== 'tree') {
-    const {dir, name, ext, base} = path.parse(x.path)
-    if (ext === '.md') {
-      const ver = (name.match(/^(\[.*?\])/) || [])[1]
-      const pathname = ((dir === '' ? '/' : '/post/') + name.replace(ver, '')).replace(/^\/index$/, '/')
-      const src = 'https://raw.githubusercontent.com/teznote/teznote.github.io/main/' + base
-      const tar = '/_site/_pages' + (pathname === '/' ? '/index' : pathname) + '.json'
+    let lines = code.trim().split('\n')
+    let tar_line = new Map()
+    let code_modified = lines.map((x, i) => {
+      if (x[0] === '-' || x[0] === '+' || x[0] === ']') {
+        tar_line.set(i, x[0])
+        x = x.slice(1)
+      }
+      return x
+    }).join('\n')
 
-      mdinfos.push({dir, name, ext, base})
-    } else if ((ext === '.yaml' || ext === '.yml') && !Object.keys(navmenu).length) {
-      const tmp = yaml.load('https://raw.githubusercontent.com/teznote/teznote.github.io/main/' + base, { schema: yaml.JSON_SCHEMA })
-      Object.assign(navmenu, tmp)
-    }
+    lines = hljs.highlight(code_modified, { language }).value.trim().split('\n')
+    return lines.map((x, i) => {
+      return `<div class="codeline ${tar_line.get(i) || ''}">${x || ' '}</div>`
+    }).join('')
+  },
+})
+
+const render = (file, content='', props={}) => {
+  const { layout, ...rest } = props
+  props = rest
+  const r = matter.read(file, matter_opt)
+  if (file.match(/\.md$/)) {
+    Object.assign(props, { page: r.data })
+    content = parse_md.render(r.content)
+  } else {
+    Object.assign(props, r.data)
+    content = engine.parseAndRenderSync(r.content, { content, ...props })
+  }
+
+  if (r.data?.layout) {
+    return render(process.env.PWD + `/_layouts/${r.data.layout}.html`, content, props)
+  } else {
+    content = minify(content, { removeComments: true, collapseWhitespace: true })
+    return { content, ...props }
   }
 }
-console.log(mdinfos)
-console.log(navmenu)
 
+/**
+ * clear output directory
+ */
+fs.removeSync($root + '/_site')
 
-// const mdfiles_from_main = await (await fetch('https://api.github.com/repos/teznote/teznote.github.io/git/trees/main?recursive=1')).json()
-// const mdfiles = mdfiles_from_main.tree?.map(x => {
-//   if (x.type !== 'tree') {
-//     const {dir, name, ext, base} = path.parse(x.path)
-//     if (ext === '.md') {
-//       const ver = (name.match(/^(\[.*?\])/) || [])[1]
-//       if (ver) {
-//         const pathname = ((dir === '' ? '/' : '/post/') + name.replace(ver, '')).replace(/^\/index$/, '/')
-//         const src = 'https://raw.githubusercontent.com/teznote/teznote.github.io/main/' + base
-//         const tar = '/_site/_pages' + (pathname === '/' ? '/index' : pathname) + '.json'
-        
-//         return {ver, dir, name, pathname, src, tar}
-//       }
-//     }
-//   }
-// }).filter(x => x)
+/**
+ * load markdown files -> convert to json files
+ * create pageinfos array for rendering navigation
+ */
+const mdinfos = fg.globSync($root + '/_pages/**/*.md')
+const pageinfos = []
+for (let src of mdinfos) {
+  const { dir, name } = path.parse(src)
+  const tmp_ = (dir === $root + '/_pages' ? '/' : '/post/') + name.replace(/\[.*?\]/, '')
+  const tar = $root + '/_site/_pages' + tmp_ + '.json'
+  const pathname = tmp_.replace(/^\/index$/, '/')
+  const { content, page } = render(src)
+  Object.assign(page, { cat: dir.replace($root + '/_pages', '') })
+  pageinfos.push({ page, pathname })
+  // fs.outputJSONSync(tar, { content, page, pathname })
+}
 
-// export default mdfiles
+/**
+ * load yaml file -> render navigation using yaml data and pageinfos -> convert to json files
+ */
+const navmenu = yaml.load(fs.readFileSync(fg.globSync($root + '/_pages/**/*.{yaml,yml}')[0], 'utf8'))
+for (let [sup, sub] of Object.entries(navmenu)) {
+  const { content } = render($root + '/_layouts/nav.html', '', { cats: sub, pages: pageinfos })
+  const pathname = '/' + sup.toLocaleLowerCase()
+  const tar = $root + '/_site/_pages' + pathname + '.json'
+  fs.outputJSONSync(tar, { pathname, page: { title: sup.toLocaleLowerCase() + ' 카테고리' }, content })
+}
+
+// console.log(pageinfos)
