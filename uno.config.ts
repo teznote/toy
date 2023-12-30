@@ -22,7 +22,7 @@ export default defineConfig({
   ],
   content: {
     filesystem: [
-      './src/_layouts/**/*.html',
+      './_layouts/**/*.html',
     ]
   },
   shortcuts: [

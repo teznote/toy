@@ -10,7 +10,7 @@ site:
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ site.title }}</title>
     <link rel="icon" type="image/png" href="/_assets/favicon.png" />
-    <link href="https://cdn.jsdelivr.net/gh/wan2land/d2coding/d2coding-full.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/hack.css" />
     <link rel="stylesheet" href="/_assets/main.css" />
   </head>
   <body class="fixed top-0 right-0 bottom-0 left-0 flex flex-col bg-[var(--bg-1)] color-[var(--fg-1)]">
@@ -19,9 +19,9 @@ site:
         <header class="h-full w-full flex items-center justify-left gap-x-[1.25rem]">
             <div id="site-title" class="mr-auto">Tez'Note</div>
             <div><a href="/">Home</a></div>
-            {% for menu in menus %}
-            <div><a href="{{ menu.pathname }}">{{ menu.title }}</a></div>
-            {% endfor %}
+              {% for menu in menus %}
+                <div><a href="{{ menu.pathname }}">{{ menu.title }}</a></div>
+              {% endfor %}
             <label id="switch-theme" class="relative h-[1.5rem] w-[1.5rem] overflow-hidden cursor-pointer">
               <input type="checkbox" class="h-0 w-0 opacity-0 [&:checked+div]-top-[-1.5rem]" />
               <div class="absolute top-0 left-0 h-[1.5rem] w-[1.5rem] transition-top-400">
