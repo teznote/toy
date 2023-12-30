@@ -9,6 +9,7 @@ export default defineConfig({
   trailingSlash: 'never',
   build: {
     inlineStylesheets: `never`,
+    format: 'file',
   },
   markdown: {
     syntaxHighlight: false,
@@ -17,6 +18,14 @@ export default defineConfig({
   vite: {
     plugins: [yaml()],
   },
+  integrations: [{
+    name: 'teznote',
+    hooks: {
+      'astro:build:done': (opt) => {
+        console.log(opt)
+      },
+    },
+  }]
 })
 
 
@@ -29,7 +38,7 @@ function remarkHighlightjs() {
       let lines = value.trim().split('\n')
       let tar_line = new Map()
       let code_modified = lines.map((x, i) => {
-        if (x[0] === '-' || x[0] === '+' || x[0] === '>') {
+        if (x[0] === '-' || x[0] === '+' || x[0] === ']') {
           tar_line.set(i, x[0])
           x = x.slice(1)
         }
