@@ -61,13 +61,43 @@ body, div, header, main, footer, section {
   }
 }
 body {
-  @apply font-mono font-400 text-base;
+  @apply font-mono font-400 text-base line-height-[1.2];
 }
 pre, code, kbd, samp, cite {
   @apply font-mono;
 }
 a, a:link, a:visited, a:hover, a:active {
-  color: var(--fg-a);
+  text-decoration: none; color: var(--fg-a);
 }
 
-
+article {
+  #page-title {
+    @apply font-size-[2rem] mt-[3rem] mb-[2rem] before:content-['📝_'];
+  }
+  #page-description {
+    @apply before:content-['🏷️_'];
+  }
+  #page-updated {
+    @apply before:content-['📆_'];
+  }
+  #page-main {
+    h2 {
+      @apply font-size-[1.5rem] mt-[2rem] mb-[1rem] before:content-['📌_'];
+    }
+    >div, >blockquote, >p, >pre, >ul {
+      @apply my-[1rem];
+    }
+    >blockquote {
+      @apply bg-[var(--bg-2)] px-[0.5rem] py-[0.5rem] rounded-b-[0.5rem];
+    }
+    >pre {
+      @apply bg-[var(--bg-2)] px-[0.5rem] pt-[0.5rem] rounded-b-[0.5rem];
+      &>code {
+        @apply pb-[0.5rem] block;
+      }
+    }
+    >ul {
+      @apply bg-[var(--bg-2)] px-[0.5rem] py-[0.5rem] border-b-solid border-b-[var(--fg-1)] border-b-1 mb-[-1rem] rounded-t-[0.5rem];
+    }
+  }
+}

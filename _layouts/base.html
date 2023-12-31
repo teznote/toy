@@ -10,15 +10,14 @@ site:
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ site.title }}</title>
     <link rel="icon" type="image/png" href="/_assets/favicon.png" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/hack.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wan2land/d2coding/d2coding-subset.css" />
     <link rel="stylesheet" href="/_assets/main.css" />
   </head>
   <body class="fixed top-0 right-0 bottom-0 left-0 flex flex-col bg-[var(--bg-1)] color-[var(--fg-1)]">
-    <section class="flex-[0_0_3rem] min-h-0 w-full overflow-hidden bg-[var(--bg-2)] shadow-[var(--box-shadow)]">
+    <section class="flex-[0_0_3rem] min-h-0 w-full overflow-hidden bg-[var(--bg-2)]">
       <div class="h-full w-full max-w-[60rem] mx-auto px-[0.5rem]">
         <header class="h-full w-full flex items-center justify-left gap-x-[1.25rem]">
-            <div id="site-title" class="mr-auto">Tez'Note</div>
-            <div><a href="/">Home</a></div>
+            <div id="site-title" class="mr-auto"><a href="/">Tez'Note</a></div>
               {% for menu in menus %}
                 <div><a href="{{ menu.pathname }}">{{ menu.title }}</a></div>
               {% endfor %}

@@ -73,9 +73,11 @@ const parse_md = markdownIt({
   },
 })
 const render = (file, content='', props={}) => {
+  const { layout, ...rest } = props
+  props = rest
   const r = matter.read(file, matter_opt)
   if (file.match(/\.md$/)) {
-    Object.assign(props, { page: { ...r.data, layout: 'page' } })
+    Object.assign(props, { page: r.data, layout: 'page' })
     content = parse_md.render(r.content)
   } else {
     Object.assign(props, r.data)
@@ -83,7 +85,7 @@ const render = (file, content='', props={}) => {
   }
 
   if (props?.layout) {
-    return render($root + '/_layouts' + props.layout + '.html', content, props)
+    return render($root + '/_layouts/' + props.layout + '.html', content, props)
   } else {
     content = minify(content, { removeComments: true, collapseWhitespace: true })
     return { content, ...props }
@@ -110,7 +112,7 @@ const build_pages = () => {
       const exist = pageinfos_old.find(x => x.pathname === pathname)
       if (!exist || exist.ver !== ver) {
         const { content, page } = render(src)
-        pageinfos_new.push({ pathname, cat, ...page, src, tar })
+        pageinfos_new.push({ pathname, cat, ver, ...page, src, tar })
         fs.outputJSONSync(tar, { pathname, cat, ...page, content })
       } else {
         pageinfos_new.push(exist)
