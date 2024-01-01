@@ -121,13 +121,15 @@ fs.outputFileSync($root + '/_site/index.html', content)
 fs.copyFileSync($root + '/_site/index.html', $root + '/_site/404.html')
 
 
-// copy static assets and render main.css
+// copy static assets
 fs.copySync($root + '/_assets', $root + '/_site/_assets', {
   filter: (from, to) => {
     return !from.includes('main.css')
   }
 })
 
+
+// render main.css
 postcss([ postcss_nested, unocss, cssnano ]).process(
   fs.readFileSync($root + '/_assets/main.css', 'utf-8'), {
     from: $root + '/_assets/main.css',
